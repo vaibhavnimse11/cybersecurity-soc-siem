@@ -1,0 +1,84 @@
+156  sudo dpkg-reconfigure tzdata
+  157  sudo apt-get install default-jdk
+  158  ls
+  159  cd /tmp/
+  160  ls
+  161  ip a
+  162  ls
+  163  cd
+  164  ls
+  165  mv elasticsearch-8.16.1-amd64\ \(1\).deb /tmp/
+  166  cd ../../../tmp/
+  167  ls
+  168  sudo dpkg -i elasticsearch-8.16.1-amd64\ \(1\).deb
+  169  cd
+  170  ls -l /etc/elasticsearch/elasticsearch.yml
+  171  sudo ls -l /etc/elasticsearch/elasticsearch.yml
+  172  sudo nano /etc/elasticsearch/elasticsearch.yml
+  173  sudo systemctl daemon-reload
+  174  sudo systemctl enable --now elasticsearch
+  175  echo $?
+  176  sudo systemctl status elasticsearch
+  177  sudo systemctl status curl
+  178  sudo apt-get install curl
+  179  echo $?
+  180  curl -X GET "localhost:9200/_cluster/health"
+  181  curl -X GET "localhost:9200/_cluster/health?pretty"
+  182  curl -X GET "localhost:9200/_cluster/health"
+  183  ip a
+  184  clear
+  185  curl -X GET "localhost:9200/_cluster/health?pretty"
+  186  curl -X GET "localhost:9200"/_aliases?preety"
+
+  187  curl -X PUT "localhost:9200/test-index/"
+  188  echo $?
+  189  curl -X PGET "localhost:9200/_aliases?preety"
+  190  curl -X POST "localhost:9200/test-index1/_doc/1?preety" -H 'content-type:application/json' -d'
+{
+"name" : "gabbar singh"
+  191  curl -X POST "localhost:9200/test-index1/_doc/1?preety" -H 'content-type:application/json' -d'
+{
+"name" : "Gabbar singh",
+"age" : 30,
+"occupition" : "hacker"
+}
+'
+  192  curl -X POST "localhost:9200/test-index1/_doc/1?preety" -H 'content-type:app '\
+  193  curl -X POST "localhost:9200/test-index1/_doc/1?preety" -H 'content-type:application/json' -d '
+{
+"name" : "Gabbar singh" ,
+"age" : 30 ,
+"occupition" : "Hacker"
+}
+'
+  194  curl -X POST "localhost:9200/test-index1/_doc/1?preety" -H 'content-type:application/json' -d '
+{
+"name" : "Gabbar singh",
+"age" : 30,
+"occupition" : "Hacker"
+}
+'
+  195  curl -X POST "localhost:9200/test-index1/_doc/1?pretty"   -H 'Content-Type: application/json'   -d '{
+    "name": "Gabbar singh",
+    "age": 30,
+    "occupition": "Hacker"
+  }'
+  196  echo $?
+  197  curl -X GET "localhost:9200/test-index1/_doc/1?preety"
+  198  curl -X GET "localhost:9200/test_index1/_doc/1?preety"
+  199  echo $?
+  200  ls
+  201  sudo dpkg -i logstash-8.16.1-amd64.deb
+  202  echo $?
+  203  ls
+  204  sudo nano pipe1.conf
+  205  echo "Hello World" | sudo /usr/share/logstash/bin/logstash -f /home/shuhari/pipe1.conf
+  206  nano pipe1.conf
+  207  sudo nano pipe1.conf
+  208  echo "Hello World" | sudo /usr/share/logstash/bin/logstash -f /home/shuhari/pipe1.conf
+  209  ls
+  210  sudo dpkg -i kibana-8.16.1-amd64\ \(1\).deb
+  211  sudo ls -l /etc/kibana/
+  212  sudo nano /etc/kibana/kibana.yml
+  213  sudo systemctl enable --now kibana
+  214  ip a
