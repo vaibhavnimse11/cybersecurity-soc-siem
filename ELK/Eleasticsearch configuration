@@ -1,0 +1,61 @@
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.0.3-amd64.deb \
+  wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.0.3-amd64.deb.sha512 \
+  shasum -a 512 -c elasticsearch-9.0.3-amd64.deb.sha512 \
+  sudo dpkg -i elasticsearch-9.0.3-amd64.deb
+
+           -  copy the key or password 
+
+  - sudo find / -name elasticsearch.yml 2>/dev/null
+  - sudo nano /etc/elasticsearch/elasticsearch.yml
+
+          - cluster.name: my-application
+          - node.name: node-1
+          - network.host: 0.0.0.0
+          
+    Discovery :
+          - discovery.seed_hosts: ["127.0.0.1"]
+          - cluster.initial_master_nodes: ["node-1"]
+          
+   BEGIN SECURITY AUTO CONFIGURATION :
+         - xpack.security.enabled: false        --> set to false
+         - xpack.security.enrollment.enabled: false    ---> set to false
+
+         xpack.security.http.ssl:
+              enabled: false   --> set to the false
+
+        xpack.security.transport.ssl:
+             - enabled: false    ---> set to the false
+
+              - cluster.initial_master_nodes: ["ELK"]  --> comment this
+
+
+ - sudo systemctl daemon-reload
+ - sudo systemctl enable --now elasticsearch
+ - sudo systemctl status elasticsearch
+
+  - sudo ss -tuln | grep 9200
+  - sudo journalctl -u elasticsearch -n 50 --no-pager  --> to see the logs
+
+
+  - curl http://127.0.0.1:9200/
+  - curl -X GET "http://localhost:9200/?pretty"  --> succesfully elasticsearch is running
+
+  ===================================================================================
+          
+
+  optional :    -->  in localhost: type --> 127.0.0.1 or use localhost
+
+             - curl -X GET "127.0.0.1":9200/_cluster/health/health?pretty"
+             - curl -X GET "localhost:9200/_aliases?pretty"
+             - curl -X PUT "localhost:9200/test-index1"
+             - curl -X GET "localhost:9200/_aliases?pretty"
+
+   creating a document :-
+
+        curl -X POST "http://localhost:9200/test-index1/_doc/1?pretty" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "name": "gabbar singh",
+          "age": 30,
+          "occupation": "hacker"
+        }'
