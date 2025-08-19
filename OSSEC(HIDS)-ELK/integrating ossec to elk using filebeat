@@ -1,0 +1,73 @@
+ - curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.8.2-amd64.deb
+   -  sudo dpkg -i filebeat-8.8.2-amd64.deb
+
+    - sudo nano /etc/filebeat/filebeat.yml 
+
+                filebeat.inputs:
+                - type: log
+                  enabled: true
+                  paths:
+                    - /var/ossec/logs/alerts/alerts.log
+                  fields:
+                    log_type: ossec
+
+    -  output.logstash:
+         hosts: ["192.168.80.128:5044"]      --> add in logstash output section
+
+    - sudo systemctl restart filebeat
+    -  sudo filebeat test config 
+    -  sudo filebeat test output
+    - sudo /usr/share/filebeat/bin/filebeat -e -c /etc/filebeat/filebeat.yml -d "publish,harvester,input"
+                                                                    - to run debug mode -> harvesting 
+
+- in ELK server:-
+        - sudo nano /etc/logstash/conf.d/ossec.conf  --> parsing ossec logs logstash to ELK 
+
+input {
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+  if [fields][log_type] == "ossec" {
+    grok {
+      match => { "message" => "\[%{DATA:timestamp}\] \[%{DATA:rule_id}\] \[%{DATA:src_ip}\] %{GREEDYDATA:ossec_msg}" }
+    }
+
+    date {
+      match => [ "timestamp", "yyyy/MM/dd HH:mm:ss" ]
+      target => "@timestamp"
+    }
+
+    mutate {
+      remove_field => [ "timestamp" ]
+    }
+  }
+}
+
+output {
+  if [fields][log_type] == "ossec" {
+    elasticsearch {
+      hosts => ["http://localhost:9200"]
+      index => "ossec-logs-%{+YYYY.MM.dd}"
+    }
+
+    stdout { codec => rubydebug }
+  }
+}
+
+testing the config manually:-
+    - sudo /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/ossec.conf --config.test_and_exit
+
+    - sudo systemctl restart logstash
+    - sudo systemctl enable logstash
+    - sudo /usr/share/logstash/bin/logstash -t -f /etc/logstash/conf.d/   --> validate config without starting the logstash --> u will see configuration ok 
+
+    - sudo chown -R logstash:logstash /etc/logstash
+    - sudo chown -R logstash:logstash /var/lib/logstash
+    - sudo chown -R logstash:logstash /var/log/logstash
+
+    - sudo journalctl -u logstash -f   -> testing config u will serr the  port 5044
+
+
