@@ -1,0 +1,52 @@
+   cd /tmp
+       - wget https://artifacts.elastic.co/downloads/kibana/kibana-8.18.4-amd64.deb
+       - sudo dpkg -i kibana-8.18.4-amd64.deb
+
+       - sudo nano /etc/kibana/kibana.yml
+
+               - server.port: 5601         --> uncomment  
+               -  server.host: "localhost"  --> uncomment
+              -  sudo systemctl enable kibana
+              - sudo systemctl status kibana
+
+    - enter the http://localhost:5601   --> delete the cache browsing 
+
+=========================================================================
+
+    - curl -X GET "localhost:9200/_cat/indices?v"   -> to find the indexes
+
+            output {
+                elasticsearch {
+                  hosts => ["http://localhost:9200"]
+                  index => "apt_logs"     --> index name 
+                }
+           }
+confirm the elastic search :-
+       to check contains index exists and has documents or not
+
+                  - curl -X GET "localhost:9200/apt_logs/_search?size=1&pretty"  
+
+      - if u get the document then u want to create kibana 
+
+formats of index pattern (creating index pattern):-
+
+    apt_logs	logstash-*	❌ No
+    apt_logs	  apt_logs  	✅ Yes
+    apt_logs	  apt_*	      ✅ Yes
+    apt_logs	  *	          ✅ Yes
+
+
+- Go to Kibana (open in browser) :-
+      - “Stack Management” → “Data Views”
+          - Click "Create data view"
+                - Name: apt_logs
+                - Index pattern: apt_logs
+
+ Now View the Logs:-
+     -  Go to “Discover”
+      - Select the data view: apt_logs
+            - You’ll see the logs of apt 
+
+ Kibana is now successfully displaying Logstash  data
+
+              
