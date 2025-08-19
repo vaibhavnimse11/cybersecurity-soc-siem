@@ -1,0 +1,137 @@
+integrate nagios to ELK using filebeat
+
+🔧 Objective
+Send Nagios logs and alerts to Elasticsearch for visualization in Kibana, using Filebeat or Logstash.
+
+✅ Architecture
+plaintext
+CopyEdit
+[Nagios] 
+   ↓ (log files: nagios.log, perfdata.log)
+[Filebeat or Logstash]
+   ↓
+[Elasticsearch]
+   ↓
+[Kibana]
+
+
+🧱 STEP 1: Identify Nagios Log Files
+Default log location:
+
+ swift
+CopyEdit
+/usr/local/nagios/var/nagios.log
+/usr/local/nagios/var/archive/  (for old logs)
+/var/log/nagios3/nagios.log     (Debian/Ubuntu)
+
+
+Performance data (if enabled):
+
+ swift
+CopyEdit
+/usr/local/nagios/var/perfdata.log
+
+
+
+🧰 STEP 2: Install Filebeat (Recommended)
+Install Filebeat on the Nagios server.
+📥 Install Filebeat on Debian/Ubuntu:
+bash
+CopyEdit
+curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.17.9-amd64.deb
+sudo dpkg -i filebeat-7.17.9-amd64.deb
+
+
+⚙️ STEP 3: Configure Filebeat to Read Nagios Logs
+Edit the Filebeat config:
+bash
+CopyEdit
+sudo nano /etc/filebeat/filebeat.yml
+
+➕ Add Custom Input:
+yaml
+CopyEdit
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /usr/local/nagios/var/nagios.log
+    - /usr/local/nagios/var/archive/*.log
+  fields:
+    log_type: nagios
+
+
+🧪 STEP 4: Test Filebeat & Enable Modules (optional)
+bash
+CopyEdit
+sudo filebeat modules enable system
+sudo filebeat test config
+
+
+🚀 STEP 5: Output to Logstash or Elasticsearch
+Choose one:
+✅ Option A: Send Directly to Elasticsearch
+In filebeat.yml, set:
+yaml
+CopyEdit
+output.elasticsearch:
+  hosts: ["http://<ELASTICSEARCH_IP>:9200"]
+
+✅ Option B: Send to Logstash (if you use custom parsing)
+yaml
+CopyEdit
+output.logstash:
+  hosts: ["<LOGSTASH_IP>:5044"]
+
+
+📡 STEP 6: Start Filebeat
+bash
+CopyEdit
+sudo systemctl enable filebeat
+sudo systemctl start filebeat
+
+
+📊 STEP 7: View Logs in Kibana
+Open Kibana → Discover
+
+
+Set index pattern: filebeat-*
+
+
+Filter by:
+
+ arduino
+CopyEdit
+fields.log_type : "nagios"
+
+
+
+🛠️ OPTIONAL: Parsing with Logstash
+If you're using Logstash between Filebeat and Elasticsearch:
+Sample Logstash Config:
+bash
+CopyEdit
+sudo nano /etc/logstash/conf.d/nagios.conf
+
+ruby
+CopyEdit
+input {
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+  if [fields][log_type] == "nagios" {
+    grok {
+      match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} %{WORD:host_state} ..." }
+    }
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["http://localhost:9200"]
+    index => "nagios-logs-%{+YYYY.MM.dd}"
+  }
+}
