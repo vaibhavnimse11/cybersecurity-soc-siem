@@ -1,0 +1,86 @@
+in /tmp
+
+  - wget https://artifacts.elastic.co/downloads/logstash/logstash-8.18.4-amd64.deb
+  -  sudo dpkg -i logstash-8.18.4-amd64.deb
+
+  -  sudo /usr/share/logstash/bin/logstash --version
+
+for paracticing:
+
+  - sudo nano pipe.conf 
+
+        input {
+               stdin {}
+       }
+        output {
+               stdout {codec => rubydebug}
+        }
+  - echo "helloworld" | sudo  /usr/share/logstash/bin/logstash -f /home/shuhari/pipe.conf
+
+  to change to captial letters   --> uncomment the previous code present in the pipe.conf
+  - add the 
+            
+                input {
+                    stdin {}
+                }
+                
+                filter {
+                    mutate {
+                        uppercase => ["message"]
+                    }
+                }
+                
+                output {
+                    stdout {
+                        codec => rubydebug
+                    }
+                }
+
+  - echo "helloworld" | sudo  /usr/share/logstash/bin/logstash -f /home/shuhari/pipe.conf
+========================================================================
+
+***************we are doing the apt logs to process in the logstash******* 
+
+- sudo  nano /var/log/apt/history.log
+create file --> 
+        sudo nano /etc/logstash/conf.d/one.conf
+
+input {
+  file {
+    path => "/var/log/apt/history.log"
+    start_position => "beginning"
+    sincedb_path => "/var/lib/logstash/apt.sincedb"
+  }
+}
+
+filter {
+  if [message] =~ /Commandline:/ {
+    mutate {
+      add_field => { "installation_status" => "installed" }
+    }
+  } else {
+    drop { }
+  }
+}
+
+output {
+     elasticsearch{
+        hosts => ["http://localhost:9200"]
+        index => "apt_logs"
+     }
+     stdout {codec => rubydebug}
+}
+
+testing the logstash:- -->   u will get --> configured ok
+
+      - sudo /usr/share/logstash/bin/logstash --path.settings /etc/logstash -f /etc/logstash/conf.d/apt-pipeline.conf --config.test_and_exit
+           
+- sudo systemctl start logstash
+-  sudo systemctl enable logstash
+- sudo systemctl status logstash
+ 
+
+
+
+
+  
