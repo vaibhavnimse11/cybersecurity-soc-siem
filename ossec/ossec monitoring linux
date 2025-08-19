@@ -1,0 +1,125 @@
+OSSEC HIDS INSTALLATION GUIDE (Manager + Agent)
+    
+     PART 1: INSTALL OSSEC MANAGER (Server)
+    
+       The manager collects logs from agents and processes them.
+===========================================================================================================
+    
+    Step 1: Update System
+    
+      - sudo apt update && sudo apt upgrade -y
+    
+    Step 2: Install Dependencies
+      
+          sudo apt install gcc make build-essential inotify-tools libevent-dev zlib1g-dev libpcre2-dev libssl-dev curl -y \
+           sudo apt-get update \
+           sudo apt-get install libsystemd-dev 
+
+     Step 3: Download and Extract OSSEC
+      
+         -  curl -L -O https://github.com/ossec/ossec-hids/archive/refs/tags/3.7.0.tar.gz
+                    - sudo apt update
+                    - sudo apt install --reinstall ca-certificates
+
+         -  tar -xvzf 3.7.0.tar.gz
+         -  cd ossec-hids-3.7.0
+    
+     Step 4: Run the Install Script
+          
+          sudo ./install.sh
+          During Setup:
+          Choose: server
+    
+    
+   -  Enable email alerts? Optional
+    
+   -  Enable integrity checking? Yes
+    
+    - Enable rootkit detection? Yes
+    
+   -  Enable active response? Yes
+    
+    -  Email configuration: optional
+
+    Step 5: Start OSSEC
+   
+        - sudo /var/ossec/bin/ossec-control start
+
+        - sudo nano /var/ossec/etc/ossec.conf
+        - echo $?
+
+
+=================================INSTALLATION OF OSSEC AGENT ON CLIENT (LINUX)============================================
+
+    PART 2: INSTALL OSSEC AGENT (Client)
+         The agent monitors its own system and sends logs to the manager.
+
+   Step 1: Install Dependencies
+        - Sudo apt update
+        - sudo apt install gcc make build-essential inotify-tools libevent-dev zlib1g-dev libpcre2-dev libssl-dev curl -y
+        - sudo apt-get update \
+        - sudo apt-get install libsystemd-dev 
+
+   Step 2: Download and Extract OSSEC Agent
+    
+         - curl -L -O https://github.com/ossec/ossec-hids/archive/refs/tags/3.7.0.tar.gz
+                     - sudo apt update
+                    - sudo apt install --reinstall ca-certificates
+
+         - tar -xvzf 3.7.0.tar.gz
+         - cd ossec-hids-3.7.0
+
+    
+   Step 3: Run Install Script
+        
+       - sudo ./install.sh
+            During Setup:  
+                - en
+                - Choose: agent
+    
+    Enter the manager IP when prompted
+                        
+                   don't run --->      Step 4: Start OSSEC Agent
+                        
+                                sudo /var/ossec/bin/ossec-control start
+    
+    
+    PART 3: LINK AGENT TO MANAGER
+
+         On Manager: Add Agent
+          sudo /var/ossec/bin/manage_agents
+
+    - Choose: A to add agent
+    -  Give agent name, IP address
+    - It will give you an Agent Key
+    
+    
+    On Agent: Import Key
+          Copy the key and on the agent system:
+          sudo /var/ossec/bin/manage_agents
+    
+    - Choose: I to import
+    -Paste the copied key
+    
+   Restart Agent
+        sudo /var/ossec/bin/ossec-control restart
+    
+    Verify Communication
+
+    On Manager:
+   
+          sudo /var/ossec/bin/manage_agents
+          sudo /var/ossec/bin/agent_control -l
+
+    You should see the agent connected.
+    
+  =======================================================================================
+
+OSSEC is set to monitor these log files by default:
+        
+        /var/log/dpkg.log (package installation logs on Debian/Ubuntu)
+        
+        /var/log/apache2/error.log (Apache error logs)
+        
+        /var/log/apache2/access.log (Apache access logs)
+            
