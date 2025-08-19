@@ -1,0 +1,109 @@
+********************* integrate the nagios to ELK using filebeat ********************
+
+
+
+    Identify Nagios Log Files
+        /usr/local/nagios/var/nagios.log
+
+    install file beat using deb file 
+        - curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.17.9-amd64.deb
+          sudo dpkg -i filebeat-7.17.9-amd64.deb
+
+      - sudo nano /etc/filebeat/filebeat.yml
+
+      - add file beat input feild:-
+      
+            -filebeat.inputs:
+            - type: log
+              enabled: true
+              paths:
+                - /usr/local/nagios/var/nagios.log
+                - /usr/local/nagios/var/archive/*.log
+              fields:
+                log_type: nagios
+
+      -  Outputs --> add in output feild
+      
+            output.logstash:
+            hosts: ["192.168.80.128:5400"]    -> ELK vm ip 
+
+        - sudo systemctl enable filebeat
+        - sudo systemctl status filebeat
+        -  sudo filebeat test config   -> u will get config ok 
+
+
+============= sending to logstash =========================
+create a file 
+        sudo nano /etc/logstash/conf.d/nagios.conf
+
+input {
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+  if [fields][log_type] == "nagios" {
+    grok {
+      match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} %{GR>
+    }
+
+    date {
+      match => ["timestamp", "ISO8601"]
+      target => "@timestamp"
+    }
+
+    mutate {
+      remove_field => ["timestamp"]
+    }
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["http://localhost:9200"]
+    index => "nagios-logs-%{+YYYY.MM.dd}"
+  }
+
+  stdout {
+    codec => rubydebug
+  }
+}
+
+
+
+
+        - curl -X GET "192.168.80.128:9200/_cat/indices?v"   --> check the indices 
+                                      filebeat-7.17 or nagios_logs   -> u will see the like this
+                      above ip is --> Lists all indices in your Elasticsearch cluster
+
+        - sudo /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/nagios.conf   --> view live logstash logs r
+                                                                                running manually,and give the listening port of 
+                                                                                logstash ex:  port: 5044
+                            (or)
+        - sudo journalctl -u logstash -f
+        - sudo /usr/share/logstash/bin/logstash --path.settings /etc/logstash -t   --> testing logstash congig file
+        - 
+
+
+         - Go to Kibana (open in browser) :-
+              - “Stack Management” → “Data Views”
+                  - Click "Create data view"
+                        - Name: nagios-logs    
+                        - Index pattern: nagios-*
+
+        -  Now View the Logs:-
+             -  Go to “Discover”
+              - Select the data view: nagios-logs    
+                    - click  fields.log_type: "nagios"
+
+                          - You'll see /usr/local/nagios/var/nagios.log
+
+        - successfully integrate the nagios to ELK using filebeat 
+
+                check 
+                    1.hostip 
+                    2. log.file.path
+                    3. @timestamp
+
+        
